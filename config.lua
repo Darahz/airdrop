@@ -8,7 +8,7 @@ Config.TimeBeforeleave   = 1000
 
 Config.Timeout = 60
 
-Config.Debug = false
+Config.Debug = true
 
 -- Spawning in milliseconds, there's a wait between spawn
 Config.MinPedSpawning = 9000
@@ -41,6 +41,14 @@ Config.ChopperCratedropLocations = {
     vector3(586.56,  2935.91, 150.00),
     vector3(749.92,  2526.1,  150.00),
     vector3(827.23,  2141.76, 150.00),
+    vector3(1235.9,  1917.51, 150.00),
+    vector3(159.62,  3047.09, 150.00),
+    vector3(56.93,   3717.62, 150.00),
+    vector3(-112.88, 4353.75, 150.00),
+    vector3(1327.63, 4349.3,  150.00),
+    vector3(2513.23, 4966.23, 150.00),
+    vector3(2547.95, -387.51, 150.00),
+    vector3(2049.13, 2323.59, 150.00)
 }
 
 Config.CrateProtectors = {

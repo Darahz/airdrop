@@ -47,13 +47,14 @@ AddEventHandler("TriggerAirDrop", function()
     Citizen.CreateThread(function()
         TaskVehicleDriveToCoord(driver, pedVehicle, vehicleFirstTarget.x, vehicleFirstTarget.y, vehicleFirstTarget.z, 100.00, 1, pedVehicle, 786468, 10.0, true)
         while GetDistanceBetweenCoords(vehicleFirstTarget.x, vehicleFirstTarget.y, vehicleFirstTarget.z, GetEntityCoords(pedVehicle)) > 10.0 do
-            Citizen.Wait(1000)
+            Citizen.Wait(1)
         end
 
         Citizen.Wait(Config.TimeBeforeDrop)
         local currentPos = vector3(GetEntityCoords(pedVehicle).x,GetEntityCoords(pedVehicle).y,GetEntityCoords(pedVehicle).z - 8)
         local headingVec = GetEntityHeading(pedVehicle)
         -- Trigger create to spawn
+        print("Dropping crate")
         spawnCrate(currentPos, headingVec)
         Citizen.Wait(Config.TimeBeforeleave)
 
@@ -78,6 +79,24 @@ RegisterCommand("spv", function()
     TriggerEvent("TriggerAirDrop", -1)
     TriggerEvent('chatMessage', "", {255, 255, 255}, "Airdriop event triggered. Location : Somehwere in Grapeseed/Sandy");
 end)
+
+
+RegisterCommand("showallairdroppoints", function()
+    local blips = {}
+    for nameCount = 1, #Config.ChopperCratedropLocations do
+        local location = Config.ChopperCratedropLocations[nameCount]
+        local blip = AddBlipForRadius(location.x,location.y,location.z, 20.0)
+        SetBlipColour(blip, 1)
+        SetBlipAlpha(blip, 128)
+        table.insert(blips,blip)
+    end
+    Citizen.CreateThread(function()
+        Citizen.Wait(10000)
+        for item = 1, #blips do
+            RemoveBlip(blips[item])
+        end
+    end)
+end, true)
 
 function UpdateTimeout()
     if Timeout == 0 then
@@ -134,7 +153,7 @@ function spawnCrate(pedLocation, headingVector)
     CreateFlareOnProp(dropppedCrate.PropInf.Prop)
     
     DeleteEntity(fallingCrate.PropInf.Child)
-    
+
     DespawnCrate()
 
     exports['qb-target']:AddTargetEntity(dropppedCrate.PropInf.Prop, {
@@ -144,12 +163,22 @@ function spawnCrate(pedLocation, headingVector)
 				event = "createDrop:Open",
 				icon = 'fas fa-box',
 				label = 'Open',
+			},
+            {
+				type = "client",
+				event = "createDrop:Destroy",
+				icon = 'fas fa-box',
+				label = 'Destroy',
 			}
 		},
 		distance = 2.5
 	})
 
 end
+RegisterNetEvent('createDrop:Destroy', function()
+    DeleteEntity(dropppedCrate.PropInf.Prop)
+    RemoveBlip(blip)
+end)
 
 RegisterNetEvent('createDrop:Open', function()
     if dropppedCrate.PropInf.Picked == false then
@@ -160,6 +189,7 @@ RegisterNetEvent('createDrop:Open', function()
             disableMouse = false,
             disableCombat = true,
             TriggerEvent('create:open:spawnpeds'),
+            TriggerEvent('create:open:hackingsounds')
         },{
             animDict = "anim@gangops@facility@servers@",
             anim = "hotwire",
@@ -172,6 +202,22 @@ RegisterNetEvent('createDrop:Open', function()
     else
         TriggerEvent("create:open:showloot")
     end
+end)
+
+RegisterNetEvent('crate:hackingsounds',function()
+    Citizen.CreateThread(function()
+        while dropppedCrate.PropInf.Picked == false do
+            
+            PlaySound(-1, "Lose_1st", "GTAO_FM_Events_Soundset", 0, 0, 1)
+            Wait(100)
+            PlaySoundFrontend( -1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS", 1 )
+            Wait(100)
+            PlaySound(-1, "Lose_1st", "GTAO_FM_Events_Soundset", 0, 0, 1)
+            Wait(100)
+            PlaySoundFrontend( -1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS", 1 )
+            Citizen.Wait(math.random(1000,8000))
+        end
+    end)
 end)
 
 RegisterNetEvent('create:open:spawnpeds',function()
@@ -192,7 +238,7 @@ RegisterNetEvent('create:open:spawnpeds',function()
             end
 
             local ped = CreatePed(4, pedType, pedX, pedY, pedZ, 0.0, true, true)
-            GiveWeaponToPed(ped, GetHashKey(Config.CrateProtectorWeapons[math.random(#Config.CrateProtectorWeapons)]), 1000, false, true)
+            GiveWeaponToPed(ped, GetHashKey(Config.CrateProtectorWeapons[math.random(#Config.CrateProtectorWeapons)]), 60, false, true)
 
             PlaceObjectOnGroundProperly(ped)
             local PedLocation = vector3(pedX,pedY,pedZ)
@@ -208,6 +254,7 @@ RegisterNetEvent('create:open:spawnpeds',function()
             SetPedRelationshipGroupHash(ped, GetHashKey("army"))
             SetPedCombatAttributes(ped, 46, true)
             if maxpeds == 0 then
+                print("no more peds")
                 break
             end
             maxpeds = maxpeds - 1
@@ -222,7 +269,7 @@ function DespawnCrate()
 
         while countDown > 0 do
             countDown = countDown -1
-            print("Countdown: ",countDown)
+
             Citizen.Wait(1000)
         end
 
