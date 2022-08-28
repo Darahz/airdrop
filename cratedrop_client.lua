@@ -177,14 +177,13 @@ end)
 RegisterNetEvent('create:open:spawnpeds',function()
     local maxpeds = Config.MaxNumbedOfPeds
 	Citizen.CreateThread(function()
-        while dropppedCrate.PropInf.PickingInProgress == false do
+        while dropppedCrate.PropInf.Picked == false do
             local cord = GetEntityCoords(fallingCrate.PropInf.Parent)
             Citizen.Wait(math.random(Config.MinPedSpawning ,Config.MaxPedSpawning))
-            print("Spawning ped")
             local pedX = cord.x + math.random(-100,100)
             local pedY = cord.y + math.random(-100,100)
             local pedZ = cord.z
-            local pedType = "csb_mweather"
+            local pedType = Config.CrateProtectors[math.random(#Config.CrateProtectors)]
 
 
             RequestModel(pedType)
@@ -193,7 +192,7 @@ RegisterNetEvent('create:open:spawnpeds',function()
             end
 
             local ped = CreatePed(4, pedType, pedX, pedY, pedZ, 0.0, true, true)
-            GiveWeaponToPed(ped, GetHashKey("WEAPON_PISTOL"), 1000, false, true)
+            GiveWeaponToPed(ped, GetHashKey(Config.CrateProtectorWeapons[math.random(#Config.CrateProtectorWeapons)]), 1000, false, true)
 
             PlaceObjectOnGroundProperly(ped)
             local PedLocation = vector3(pedX,pedY,pedZ)
