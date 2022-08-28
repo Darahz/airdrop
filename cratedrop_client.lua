@@ -189,7 +189,7 @@ RegisterNetEvent('createDrop:Open', function()
             disableMouse = false,
             disableCombat = true,
             TriggerEvent('create:open:spawnpeds'),
-            TriggerEvent('create:open:hackingsounds')
+            --TriggerEvent('create:open:hackingsounds')-- Didnt work....
         },{
             animDict = "anim@gangops@facility@servers@",
             anim = "hotwire",
