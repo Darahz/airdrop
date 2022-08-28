@@ -43,6 +43,17 @@ Config.ChopperCratedropLocations = {
     vector3(827.23,  2141.76, 150.00),
 }
 
+Config.CrateProtectors = {
+    "s_m_y_marine_03",
+    "s_m_y_marine_01"
+}
+
+Config.CrateProtectorWeapons = {
+    "weapon_assaultrifle_mk2",
+    "weapon_pistol",
+    "weapon_smg"
+}
+
 Config.CrateItems = {
     [1] = {
         name = "goldbar",
