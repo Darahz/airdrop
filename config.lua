@@ -28,6 +28,7 @@ Config.ChopperSpawnLocations = {
     vector3(2001.69,  7998.37, 471.68),
 }
 
+-- Can be viewed in with the command 'showallairdroppoints'
 Config.ChopperCratedropLocations = {
     vector3(2683.33, 2989.83, 150.00),
     vector3(2573.02, 2940.49, 150.00),

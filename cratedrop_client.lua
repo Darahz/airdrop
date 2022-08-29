@@ -3,7 +3,8 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local fallingCrate  = {}
 local dropppedCrate = {}
 
-local Timeout = 0;
+local Timeout = 0
+local CrateDestroyed = false
 
 
 RegisterNetEvent("TriggerAirDrop")
@@ -69,6 +70,8 @@ AddEventHandler("TriggerAirDrop", function()
     end)
 end)
 
+-- Must be an idiot cuz i couldnt get TriggerClientEvent(eventName, playerId, ...) to work
+-- TODO:Retry this part
 Citizen.CreateThread(function()
     Citizen.Wait(10000)
     TriggerEvent("TriggerAirDrop", -1)
@@ -98,6 +101,8 @@ RegisterCommand("showallairdroppoints", function()
     end)
 end, true)
 
+
+-- Trigger Timeout
 function UpdateTimeout()
     if Timeout == 0 then
         Timeout = Config.Timeout
@@ -105,6 +110,10 @@ function UpdateTimeout()
             while Timeout > 0 do
                 Timeout = Timeout - 1
                 Citizen.Wait(1000)
+                if CrateDestroyed == true then
+                    CrateDestroyed = false
+                    break
+                end
             end
         end)
     else
@@ -178,6 +187,7 @@ end
 RegisterNetEvent('createDrop:Destroy', function()
     DeleteEntity(dropppedCrate.PropInf.Prop)
     RemoveBlip(blip)
+    CrateDestroyed = true
 end)
 
 RegisterNetEvent('createDrop:Open', function()
@@ -204,6 +214,7 @@ RegisterNetEvent('createDrop:Open', function()
     end
 end)
 
+--[[
 RegisterNetEvent('crate:hackingsounds',function()
     Citizen.CreateThread(function()
         while dropppedCrate.PropInf.Picked == false do
@@ -219,9 +230,12 @@ RegisterNetEvent('crate:hackingsounds',function()
         end
     end)
 end)
+]]--
 
 RegisterNetEvent('create:open:spawnpeds',function()
-    local maxpeds = Config.MaxNumbedOfPeds
+    local maxpeds        = Config.MaxNumbedOfPeds
+    local numPedsSpawned = 0
+
 	Citizen.CreateThread(function()
         while dropppedCrate.PropInf.Picked == false do
             local cord = GetEntityCoords(fallingCrate.PropInf.Parent)
@@ -253,8 +267,9 @@ RegisterNetEvent('create:open:spawnpeds',function()
             SetPedPathAvoidFire(ped, 1)
             SetPedRelationshipGroupHash(ped, GetHashKey("army"))
             SetPedCombatAttributes(ped, 46, true)
+            numPedsSpawned = numPedsSpawned + 1
             if maxpeds == 0 then
-                print("no more peds")
+                print("no more peds please: ", numPedsSpawned)
                 break
             end
             maxpeds = maxpeds - 1
@@ -262,6 +277,7 @@ RegisterNetEvent('create:open:spawnpeds',function()
     end)
 end)
 
+--Sinks the crate into the ground
 function DespawnCrate()
     Citizen.CreateThread(function()
 
