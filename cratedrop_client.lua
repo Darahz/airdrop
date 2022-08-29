@@ -6,121 +6,10 @@ local dropppedCrate = {}
 local Timeout = 0
 local CrateDestroyed = false
 
-
-RegisterNetEvent("TriggerAirDrop")
-AddEventHandler("TriggerAirDrop", function()
-    UpdateTimeout()
-
-    local vehicle = "cargobob"
-    RequestModel(vehicle)
-    while not HasModelLoaded(vehicle) do
-        Citizen.Wait(100)
-    end
-
-    local pedType = "csb_mweather"
-    RequestModel(pedType)
-    while not HasModelLoaded(pedType) do
-        Wait(1)
-    end
-
-    local vehicleFirstTarget  = Config.ChopperCratedropLocations[math.random(#Config.ChopperCratedropLocations)]
-    local SpawnPos   = Config.ChopperSpawnLocations[math.random(#Config.ChopperSpawnLocations)]
-    local pedVehicle = CreateVehicle(vehicle, SpawnPos.x, SpawnPos.y, SpawnPos.z, GetHeadingFromVector_2d(vehicleFirstTarget.x, vehicleFirstTarget.y), 1, 0)
-    local driver     = CreatePedInsideVehicle(pedVehicle, 3, pedType, -1, true, true)
-
-    -- Teleport person inside cargobob, just to see where it is
-    if Config.Debug == true then
-        StartPlayerTeleport(PlayerId(), SpawnPos.x, SpawnPos.y, SpawnPos.z, 0.0, false, true, true)
-
-        local blip = AddBlipForRadius(vehicleFirstTarget.x,vehicleFirstTarget.y,vehicleFirstTarget.z, 20.0)
-        SetBlipColour(blip, 1)
-        SetBlipAlpha(blip, 128)
-
-        while IsPlayerTeleportActive() do
-            Citizen.Wait(0)
-        end
-    end
-    
-
-
-    SetHeliBladesFullSpeed(pedVehicle)
-
-    Citizen.CreateThread(function()
-        TaskVehicleDriveToCoord(driver, pedVehicle, vehicleFirstTarget.x, vehicleFirstTarget.y, vehicleFirstTarget.z, 100.00, 1, pedVehicle, 786468, 10.0, true)
-        while GetDistanceBetweenCoords(vehicleFirstTarget.x, vehicleFirstTarget.y, vehicleFirstTarget.z, GetEntityCoords(pedVehicle)) > 10.0 do
-            Citizen.Wait(1)
-        end
-
-        Citizen.Wait(Config.TimeBeforeDrop)
-        local currentPos = vector3(GetEntityCoords(pedVehicle).x,GetEntityCoords(pedVehicle).y,GetEntityCoords(pedVehicle).z - 8)
-        local headingVec = GetEntityHeading(pedVehicle)
-        -- Trigger create to spawn
-        print("Dropping crate")
-        spawnCrate(currentPos, headingVec)
-        Citizen.Wait(Config.TimeBeforeleave)
-
-        TaskVehicleDriveToCoord(driver, pedVehicle, SpawnPos.x, SpawnPos.y, 300, 100.00, 1, pedVehicle, 786468, 10.0, true)
-        while GetDistanceBetweenCoords(SpawnPos.x, SpawnPos.y, SpawnPos.z, GetEntityCoords(pedVehicle)) > 10.0 do
-            Citizen.Wait(1)
-        end
-
-        DeleteEntity(pedVehicle)
-        DeleteEntity(driver)
-
-    end)
-end)
-
--- Must be an idiot cuz i couldnt get TriggerClientEvent(eventName, playerId, ...) to work
--- TODO:Retry this part
-Citizen.CreateThread(function()
-    Citizen.Wait(10000)
-    TriggerEvent("TriggerAirDrop", -1)
-    TriggerEvent('chatMessage', "", {255, 255, 255}, "Airdriop event triggered. Location : Somehwere in Grapeseed/Sandy");
-end)
-
 RegisterCommand("spv", function()
-    TriggerEvent("TriggerAirDrop", -1)
+    TriggerServerEvent("airdrop:server:spawnairdrop")
     TriggerEvent('chatMessage', "", {255, 255, 255}, "Airdriop event triggered. Location : Somehwere in Grapeseed/Sandy");
 end)
-
-
-RegisterCommand("showallairdroppoints", function()
-    local blips = {}
-    for nameCount = 1, #Config.ChopperCratedropLocations do
-        local location = Config.ChopperCratedropLocations[nameCount]
-        local blip = AddBlipForRadius(location.x,location.y,location.z, 20.0)
-        SetBlipColour(blip, 1)
-        SetBlipAlpha(blip, 128)
-        table.insert(blips,blip)
-    end
-    Citizen.CreateThread(function()
-        Citizen.Wait(10000)
-        for item = 1, #blips do
-            RemoveBlip(blips[item])
-        end
-    end)
-end, true)
-
-
--- Trigger Timeout
-function UpdateTimeout()
-    if Timeout == 0 then
-        Timeout = Config.Timeout
-        Citizen.CreateThread(function()
-            while Timeout > 0 do
-                Timeout = Timeout - 1
-                Citizen.Wait(1000)
-                if CrateDestroyed == true then
-                    CrateDestroyed = false
-                    break
-                end
-            end
-        end)
-    else
-        return
-    end
-end
-
 
 function spawnCrate(pedLocation, headingVector)
     local propToDrop      = 'p_parachute1_sp_dec'
@@ -169,13 +58,13 @@ function spawnCrate(pedLocation, headingVector)
 		options = {
 			{
 				type = "client",
-				event = "createDrop:Open",
+				event = "airdrop:crate:picklock",
 				icon = 'fas fa-box',
 				label = 'Open',
 			},
             {
 				type = "client",
-				event = "createDrop:Destroy",
+				event = "airdrop:client:destroycrate",
 				icon = 'fas fa-box',
 				label = 'Destroy',
 			}
@@ -184,13 +73,141 @@ function spawnCrate(pedLocation, headingVector)
 	})
 
 end
-RegisterNetEvent('createDrop:Destroy', function()
+
+function DespawnCrate()
+    Citizen.CreateThread(function()
+
+        local countDown = Config.CrateDespawnTime
+
+        while countDown > 0 do
+            countDown = countDown -1
+
+            Citizen.Wait(1000)
+        end
+
+        local z = 100;
+
+        while z > 10 do
+            local cord = GetEntityCoords(dropppedCrate.PropInf.Prop)
+            SetEntityCoords(dropppedCrate.PropInf.Prop, cord.x, cord.y, cord.z - 0.02, 0, 0, 0, false)
+            Citizen.Wait(10)
+            z = z -1
+        end
+
+        DeleteEntity(dropppedCrate.PropInf.Prop)
+        RemoveBlip(blip)
+    end)
+end
+
+function LoadModel(model) 
+    if not HasModelLoaded(model) then
+        RequestModel(model)
+        while not HasModelLoaded(model) do
+            Citizen.Wait(1)
+        end
+    end
+end
+
+function UpdateCratePosition()
+    local windX = math.random(1,10) / 1000
+    local windY = math.random(1,10) / 1000
+    
+    while GetEntityHeightAboveGround(fallingCrate.PropInf.Parent) > 0.2 do
+        local cord = GetEntityCoords(fallingCrate.PropInf.Parent)
+        
+        SetEntityCoords(fallingCrate.PropInf.Child, cord.x + windX, cord.y + windY, (cord.z + 3) - Config.CrateFallSpeed, 0, 0, 0, false)
+        SetEntityCoords(fallingCrate.PropInf.Parent, cord.x + windX, cord.y + windY, cord.z - Config.CrateFallSpeed, 0, 0, 0, false)
+        Citizen.Wait(10)
+    end
+    PlaceObjectOnGroundProperly(fallingCrate.PropInf.Parent)
+end
+
+function CreateFlareOnProp(Prop)
+    UseParticleFxAssetNextCall("core")
+    SetParticleFxNonLoopedColour(1.0, 0.0, 0.0)
+    StartParticleFxLoopedOnEntity('weap_heist_flare_trail', Prop, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0)
+    FreezeEntityPosition(Prop, true)
+end
+
+RegisterNetEvent("airdrop:client:spawnairdrop", function()
+
+    local vehicle = "cargobob"
+    LoadModel(vehicle)
+
+
+    local pedType = "csb_mweather"
+    LoadModel(pedType)
+
+
+    local vehicleFirstTarget  = Config.ChopperCratedropLocations[math.random(#Config.ChopperCratedropLocations)]
+    local SpawnPos   = Config.ChopperSpawnLocations[math.random(#Config.ChopperSpawnLocations)]
+    local pedVehicle = CreateVehicle(vehicle, SpawnPos.x, SpawnPos.y, SpawnPos.z, GetHeadingFromVector_2d(vehicleFirstTarget.x, vehicleFirstTarget.y), 1, 0)
+    local driver     = CreatePedInsideVehicle(pedVehicle, 3, pedType, -1, true, true)
+
+    -- Teleport person inside cargobob, just to see where it is
+    if Config.Debug == true then
+        StartPlayerTeleport(PlayerId(), SpawnPos.x, SpawnPos.y, SpawnPos.z, 0.0, false, true, true)
+
+        local blip = AddBlipForRadius(vehicleFirstTarget.x,vehicleFirstTarget.y,vehicleFirstTarget.z, 20.0)
+        SetBlipColour(blip, 1)
+        SetBlipAlpha(blip, 128)
+
+        while IsPlayerTeleportActive() do
+            Citizen.Wait(0)
+        end
+    end
+    
+
+
+    SetHeliBladesFullSpeed(pedVehicle)
+
+    Citizen.CreateThread(function()
+        TaskVehicleDriveToCoord(driver, pedVehicle, vehicleFirstTarget.x, vehicleFirstTarget.y, vehicleFirstTarget.z, 100.00, 1, pedVehicle, 786468, 10.0, true)
+        while GetDistanceBetweenCoords(vehicleFirstTarget.x, vehicleFirstTarget.y, vehicleFirstTarget.z, GetEntityCoords(pedVehicle)) > 10.0 do
+            Citizen.Wait(1)
+        end
+
+        Citizen.Wait(Config.TimeBeforeDrop)
+        local currentPos = vector3(GetEntityCoords(pedVehicle).x,GetEntityCoords(pedVehicle).y,GetEntityCoords(pedVehicle).z - 8)
+        local headingVec = GetEntityHeading(pedVehicle)
+
+        spawnCrate(currentPos, headingVec)
+        Citizen.Wait(Config.TimeBeforeleave)
+
+        TaskVehicleDriveToCoord(driver, pedVehicle, SpawnPos.x, SpawnPos.y, 300, 100.00, 1, pedVehicle, 786468, 10.0, true)
+        while GetDistanceBetweenCoords(SpawnPos.x, SpawnPos.y, SpawnPos.z, GetEntityCoords(pedVehicle)) > 10.0 do
+            Citizen.Wait(1)
+        end
+
+        DeleteEntity(pedVehicle)
+        DeleteEntity(driver)
+
+    end)
+end)
+
+RegisterCommand("showallairdroppoints", function()
+    local blips = {}
+    for nameCount = 1, #Config.ChopperCratedropLocations do
+        local location = Config.ChopperCratedropLocations[nameCount]
+        local blip = AddBlipForRadius(location.x,location.y,location.z, 20.0)
+        SetBlipColour(blip, 1)
+        SetBlipAlpha(blip, 128)
+        table.insert(blips,blip)
+    end
+    Citizen.CreateThread(function()
+        Citizen.Wait(10000)
+        for item = 1, #blips do
+            RemoveBlip(blips[item])
+        end
+    end)
+end, true)
+
+RegisterNetEvent('airdrop:client:destroycrate', function()
     DeleteEntity(dropppedCrate.PropInf.Prop)
-    RemoveBlip(blip)
     CrateDestroyed = true
 end)
 
-RegisterNetEvent('createDrop:Open', function()
+RegisterNetEvent('airdrop:crate:picklock', function()
     if dropppedCrate.PropInf.Picked == false then
 
         QBCore.Functions.Progressbar("Opening crate", "Picking the lock..", 60000, false, true, {
@@ -198,41 +215,22 @@ RegisterNetEvent('createDrop:Open', function()
             disableCarMovement = true,
             disableMouse = false,
             disableCombat = true,
-            TriggerEvent('create:open:spawnpeds'),
-            --TriggerEvent('create:open:hackingsounds')-- Didnt work....
+            TriggerServerEvent('airdrop:server:spawnpeds'),
         },{
             animDict = "anim@gangops@facility@servers@",
             anim = "hotwire",
             flags = 16,
         }, {}, {}, function()
             StopAnimTask(PlayerPedId(), "anim@gangops@facility@servers@", "hotwire", 1.0)
-            TriggerEvent("create:open:showloot")
+            TriggerServerEvent("airdrop:client:opencrate")
             dropppedCrate.PropInf.Picked = true
         end)
     else
-        TriggerEvent("create:open:showloot")
+        TriggerEvent("airdrop:client:opencrate")
     end
 end)
 
---[[
-RegisterNetEvent('crate:hackingsounds',function()
-    Citizen.CreateThread(function()
-        while dropppedCrate.PropInf.Picked == false do
-            
-            PlaySound(-1, "Lose_1st", "GTAO_FM_Events_Soundset", 0, 0, 1)
-            Wait(100)
-            PlaySoundFrontend( -1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS", 1 )
-            Wait(100)
-            PlaySound(-1, "Lose_1st", "GTAO_FM_Events_Soundset", 0, 0, 1)
-            Wait(100)
-            PlaySoundFrontend( -1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS", 1 )
-            Citizen.Wait(math.random(1000,8000))
-        end
-    end)
-end)
-]]--
-
-RegisterNetEvent('create:open:spawnpeds',function()
+RegisterNetEvent('airdrop:client:spawnpeds',function()
     local maxpeds        = Config.MaxNumbedOfPeds
     local numPedsSpawned = 0
 
@@ -277,67 +275,11 @@ RegisterNetEvent('create:open:spawnpeds',function()
     end)
 end)
 
---Sinks the crate into the ground
-function DespawnCrate()
-    Citizen.CreateThread(function()
-
-        local countDown = Config.CrateDespawnTime
-
-        while countDown > 0 do
-            countDown = countDown -1
-
-            Citizen.Wait(1000)
-        end
-
-        local z = 100;
-
-        while z > 10 do
-            local cord = GetEntityCoords(dropppedCrate.PropInf.Prop)
-            SetEntityCoords(dropppedCrate.PropInf.Prop, cord.x, cord.y, cord.z - 0.02, 0, 0, 0, false)
-            Citizen.Wait(10)
-            z = z -1
-        end
-
-        DeleteEntity(dropppedCrate.PropInf.Prop)
-        RemoveBlip(blip)
-    end)
-end
-
-RegisterNetEvent('create:open:showloot',function()
+RegisterNetEvent('airdrop:client:opencrate',function()
 	local CrateItems = {}
 	CrateItems.label = "Prison Canteen"
 	CrateItems.items = Config.CrateItems
 	CrateItems.slots = #Config.CrateItems
 	TriggerServerEvent("inventory:server:OpenInventory", "shop", "Lootcrate_"..math.random(1, 99), CrateItems)
 end)
-
-function LoadModel(model) 
-    if not HasModelLoaded(model) then
-        RequestModel(model)
-        while not HasModelLoaded(model) do
-            Citizen.Wait(1)
-        end
-    end
-end
-
-function UpdateCratePosition()
-    local windX = math.random(1,10) / 1000
-    local windY = math.random(1,10) / 1000
-    
-    while GetEntityHeightAboveGround(fallingCrate.PropInf.Parent) > 0.2 do
-        local cord = GetEntityCoords(fallingCrate.PropInf.Parent)
-        
-        SetEntityCoords(fallingCrate.PropInf.Child, cord.x + windX, cord.y + windY, (cord.z + 3) - Config.CrateFallSpeed, 0, 0, 0, false)
-        SetEntityCoords(fallingCrate.PropInf.Parent, cord.x + windX, cord.y + windY, cord.z - Config.CrateFallSpeed, 0, 0, 0, false)
-        Citizen.Wait(10)
-    end
-    PlaceObjectOnGroundProperly(fallingCrate.PropInf.Parent)
-end
-
-function CreateFlareOnProp(Prop)
-    UseParticleFxAssetNextCall("core")
-    SetParticleFxNonLoopedColour(1.0, 0.0, 0.0)
-    StartParticleFxLoopedOnEntity('weap_heist_flare_trail', Prop, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0)
-    FreezeEntityPosition(Prop, true)
-end
 
