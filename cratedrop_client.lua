@@ -58,7 +58,7 @@ function spawnCrate(pedLocation, headingVector)
 		options = {
 			{
 				type = "client",
-				event = "airdrop:crate:picklock",
+				event = "airdrop:client:picklock",
 				icon = 'fas fa-box',
 				label = 'Open',
 			},
