@@ -1,21 +1,26 @@
-Config = {}
+airdropConfig = {}
 
-Config.CrateFallSpeed   = 0.09
-Config.CrateDespawnTime = 300
+airdropConfig.Debug = true
 
-Config.TimeBeforeDrop   = 10000
-Config.TimeBeforeleave   = 1000
+airdropConfig.Props = {
+    propParachute = 'p_parachute1_sp_dec',
+    propCrate     = 'prop_mil_crate_01',
+    fallspeed     = 0.09
+}
 
-Config.Timeout = 60
+airdropConfig.PedConfig = {
+    pedtype = "csb_mweather",
+    vehicle = "cargobob",
+    amount  = 10,
+    weapons = {
+        "weapon_assaultrifle_mk2",
+        "weapon_pistol",
+        "weapon_smg"
+    },
+    ammo = 60
+}
 
-Config.Debug = true
-
--- Spawning in milliseconds, there's a wait between spawn
-Config.MinPedSpawning = 9000
-Config.MaxPedSpawning = 12000
-Config.MaxNumbedOfPeds   = 8
-
-Config.ChopperSpawnLocations = {
+airdropConfig.ChopperSpawnLocations = {
     vector3(4614.49,  3689.4,  537.61),
     vector3(3454.88,  1748.83, 668.37),
     vector3(2939.93, -116.24,  580.37),
@@ -25,11 +30,10 @@ Config.ChopperSpawnLocations = {
     vector3(-1752.53, 4866.04, 354.18),
     vector3(-1457.17, 5890.31, 520.18),
     vector3(-1859.98, 2795.13, 300.81),
-    vector3(2001.69,  7998.37, 471.68),
+    vector3(2001.69,  7998.37, 471.68)
 }
 
--- Can be viewed in with the command 'showallairdroppoints'
-Config.ChopperCratedropLocations = {
+airdropConfig.Droplocations = {
     vector3(2683.33, 2989.83, 150.00),
     vector3(2573.02, 2940.49, 150.00),
     vector3(2510.92, 3276.14, 150.00),
@@ -50,34 +54,4 @@ Config.ChopperCratedropLocations = {
     vector3(2513.23, 4966.23, 150.00),
     vector3(2547.95, -387.51, 150.00),
     vector3(2049.13, 2323.59, 150.00)
-}
-
-Config.CrateProtectors = {
-    "s_m_y_marine_03",
-    "s_m_y_marine_01"
-}
-
-Config.CrateProtectorWeapons = {
-    "weapon_assaultrifle_mk2",
-    "weapon_pistol",
-    "weapon_smg"
-}
-
-Config.CrateItems = {
-    [1] = {
-        name = "goldbar",
-        price = 0,
-        amount = 50,
-        info = {},
-        type = "item",
-        slot = 1
-    },
-    [2] = {
-        name = "diamond_ring",
-        price = 0,
-        amount = math.random(1,3),
-        info = {},
-        type = "item",
-        slot = 2
-    }
 }

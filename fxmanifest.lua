@@ -5,9 +5,9 @@ author "Darahz"
 description "me"
 version "0.0.1"
 
-client_script 'cratedrop_client.lua'
+client_script 'airdrop_client.lua'
 
-server_script 'cratedrop_server.lua'
+server_script 'airdrop_server.lua'
 
 shared_scripts {
     'config.lua'
