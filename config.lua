@@ -5,7 +5,9 @@ airdropConfig.Debug = true
 airdropConfig.Props = {
     propParachute = 'p_parachute1_sp_dec',
     propCrate     = 'prop_mil_crate_01',
-    fallspeed     = 0.09
+    laptop        = 'prop_laptop_lester',
+    fallspeed     = 0.09,
+    hacktime      = 120 --In seconds
 }
 
 airdropConfig.PedConfig = {
@@ -19,7 +21,7 @@ airdropConfig.PedConfig = {
     },
     ammo = 60
 }
-
+--[[
 airdropConfig.ChopperSpawnLocations = {
     vector3(4614.49,  3689.4,  537.61),
     vector3(3454.88,  1748.83, 668.37),
@@ -32,7 +34,17 @@ airdropConfig.ChopperSpawnLocations = {
     vector3(-1859.98, 2795.13, 300.81),
     vector3(2001.69,  7998.37, 471.68)
 }
+]]--
 
+airdropConfig.ChopperSpawnLocations = {
+    vector3(2099.0, 3384.01, 150.0)
+}
+
+airdropConfig.Droplocations = {
+    vector3(2099.0, 3384.01, 150.0)
+}
+
+--[[
 airdropConfig.Droplocations = {
     vector3(2683.33, 2989.83, 150.00),
     vector3(2573.02, 2940.49, 150.00),
@@ -55,3 +67,5 @@ airdropConfig.Droplocations = {
     vector3(2547.95, -387.51, 150.00),
     vector3(2049.13, 2323.59, 150.00)
 }
+
+]]--
