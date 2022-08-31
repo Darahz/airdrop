@@ -124,11 +124,7 @@ RegisterNetEvent("airdrop:client:spawnchopper",function(spawnLocation,dropLocati
     cRequestModel(airdropConfig.PedConfig.pedtype)
     cRequestModel(airdropConfig.PedConfig.vehicle)
 
-    if airdropConfig.Debug == true then 
-        spawnLocation = GetEntityCoords(GetPlayerPed(-1)) - vector3(0,0,300)
-        dropLocation  = GetEntityCoords(GetPlayerPed(-1)) - vector3(0,0,300)
-    end
-
+    
     local parachuteOffset = vector3(0,0,7)
     local pedVehicle      = CreateVehicle(airdropConfig.PedConfig.vehicle, spawnLocation.x, spawnLocation.y, spawnLocation.z, GetHeadingFromVector_2d(dropLocation.x, dropLocation.y), 1, 0)
     local pedDriver       = CreatePedInsideVehicle(pedVehicle, 3, airdropConfig.PedConfig.pedtype, -1, true, true)
