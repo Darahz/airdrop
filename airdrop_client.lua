@@ -110,10 +110,7 @@ RegisterNetEvent("airdrop:client:spawnchopper",function(spawnLocation,dropLocati
     while GetDistanceBetweenCoords(spawnLocation, GetEntityCoords(pedVehicle)) > 10.0 do
         Citizen.Wait(10)
     end
-    --[[
-    DeleteObject(obj)
-    DeleteObject(obj2)
-    ]]--
+
     DeleteObject(pedDriver)
     DeleteObject(pedVehicle)
 
